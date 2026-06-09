@@ -1,0 +1,19 @@
+services:
+  - type: worker
+    name: soc-agent
+    env: node
+    buildCommand: pnpm install && pnpm --filter @soc/agent build
+    startCommand: node apps/agent/dist/index.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: KIMI_MODEL
+        value: moonshotai/Kimi-K2-Instruct
+      - key: SPLUNK_HOST
+        sync: false
+      - key: SPLUNK_TOKEN
+        sync: false

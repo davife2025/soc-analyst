@@ -1,0 +1,9 @@
+{
+  "extends": "@soc/config/typescript",
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "CommonJS",
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*"]
+}

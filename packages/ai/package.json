@@ -1,0 +1,13 @@
+{
+  "name": "@soc/ai",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "openai": "^4.47.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
