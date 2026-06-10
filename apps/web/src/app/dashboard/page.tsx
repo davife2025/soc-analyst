@@ -23,8 +23,13 @@ export default async function DashboardPage() {
           <span className={styles.badge}>● Live · Kimi K2</span>
         </div>
         <nav className={styles.nav}>
-          <a href="/dashboard" className={styles.navLink}>Dashboard</a>
-          <a href="/playbooks" className={styles.navLink}>Playbooks</a>
+          <a href="/dashboard"       className={styles.navLink}>Dashboard</a>
+          <a href="/playbooks"       className={styles.navLink}>Playbooks</a>
+          <a href="/audit"           className={styles.navLink}>Audit</a>
+          <a href="/settings"        className={styles.navLink}>Settings</a>
+          {user.role === 'admin' && (
+            <a href="/settings/tokens" className={styles.navLink}>Tokens</a>
+          )}
         </nav>
         <UserMenu user={user} />
       </header>

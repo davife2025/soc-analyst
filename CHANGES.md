@@ -1,79 +1,75 @@
-# Session 03 – Changed & New Files
+# Session 04 – Changed & New Files
 
 ## Drop-in instructions
-Unzip into your `soc-analyst/` root. Run `pnpm install` after (new package: @soc/auth, @supabase/ssr).
+Unzip into your `soc-analyst/` root. No new dependencies — `pnpm install` not required.
 
-## New migrations
-Run in Supabase SQL editor in order:
-1. `packages/db/migrations/003_auth_and_profiles.sql`
-
-## Supabase Dashboard setup
-1. Go to Authentication → Providers → Email: enable "Confirm email" + "Enable email confirmations"
-2. Go to Authentication → URL Configuration → set Site URL to your Vercel domain
-3. Add redirect URL: `https://your-domain.vercel.app/auth/callback`
+## New migrations (optional)
+Run in Supabase SQL editor:
+1. `packages/db/migrations/004_seed_tracking.sql`
 
 ## New env vars
+Add to `.env`:
 ```
-WEBHOOK_SECRET=your-random-secret-here
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...   (optional)
+ALLOW_SEED=true          # enables /api/seed on this environment
+SEED_SECRET=any-string   # optional extra protection for the seed endpoint
 ```
 
 ---
 
-## New package: packages/auth
-Supabase SSR auth client with server/browser clients, session helpers, `requireAuth()`, role-based access.
-
 ## New files
 
-### apps/web/src/middleware.ts
-Route protection — redirects unauthenticated users to /login.
+### apps/web/src/app/audit/page.tsx + audit.module.css
+Paginated audit log viewer with entity-type filters (all / alert / investigation / action / playbook / token).
 
-### apps/web/src/app/(auth)/login/page.tsx + login.module.css
-Login page with password + magic link tabs.
+### apps/web/src/components/AuditTable.tsx + .module.css
+Expandable audit log table — click any row to see full entity ID, metadata, and result payload.
 
-### apps/web/src/app/(auth)/callback/route.ts
-OAuth/magic link callback handler.
+### apps/web/src/app/settings/tokens/page.tsx + tokens.module.css
+Webhook token management page (admin only). Shows webhook URL + header instructions.
 
-### apps/web/src/components/LoginForm.tsx + .module.css
-Client-side login form component.
+### apps/web/src/components/TokenManager.tsx + .module.css
+Generate / revoke webhook tokens. Raw token shown once with one-click copy. Hashed before storage.
 
-### apps/web/src/components/UserMenu.tsx + .module.css
-Authenticated user dropdown with role badge + sign out.
+### apps/web/src/app/api/tokens/route.ts
+POST: generate a new token (sha256-hashed, raw returned once). Writes to audit_log.
 
-### apps/web/src/components/PlaybookCard.tsx + .module.css
-Playbook viewer with activate/deactivate toggle.
+### apps/web/src/app/api/tokens/[id]/route.ts
+DELETE: revoke a token (sets active=false). Writes to audit_log.
 
-### apps/web/src/app/playbooks/page.tsx + playbooks.module.css
-Playbooks management page. Seeds 3 default playbooks on first load.
+### apps/web/src/app/api/seed/route.ts
+POST: seeds 8 realistic demo alerts + 1 full ransomware investigation with reasoning chain + 5 actions.
+DELETE: clears all seeded demo data.
+Blocked in production unless ALLOW_SEED=true.
 
-### apps/web/src/app/api/playbooks/[id]/route.ts
-PATCH endpoint to activate/deactivate playbooks.
+### apps/web/src/components/SeedPanel.tsx + .module.css
+One-click seed / clear UI for the settings page.
 
-### apps/web/src/app/api/webhooks/splunk/route.ts
-Authenticated Splunk webhook endpoint. Accepts Bearer token or X-Splunk-Webhook-Token header.
+### apps/web/src/app/settings/page.tsx + settings.module.css
+Settings hub with Developer Tools (seed panel) + quick links to audit, tokens, playbooks.
 
-### packages/ai/src/playbook-engine.ts
-Core playbook engine: condition matching, step execution, Slack notify + ticket creation stubs.
-
-### packages/db/migrations/003_auth_and_profiles.sql
-Profiles table, auto-create trigger, RLS policies, webhook_tokens table.
+### packages/db/migrations/004_seed_tracking.sql
+Optional seed_runs table for tracking demo data loads.
 
 ## Changed files
 
 ### apps/web/src/app/dashboard/page.tsx
-Now calls `requireAuth()`, shows UserMenu + Playbooks nav link.
+Nav updated: added Audit, Settings, Tokens (admin only) links.
 
 ### apps/web/src/app/dashboard/dashboard.module.css
-Updated header with nav.
+Minor nav spacing tweak.
 
-### apps/web/package.json
-Added @soc/auth, @supabase/ssr.
+### .env.example
+Added ALLOW_SEED and SEED_SECRET vars.
 
-### packages/db/src/types.ts
-Added profiles, webhook_tokens tables.
+---
 
-### packages/ai/src/index.ts
-Exports matchPlaybooks, executePlaybook.
-
-### apps/agent/src/index.ts
-After investigation completes, runs playbook matching and auto-executes safe actions.
+## Hackathon demo flow
+1. Deploy to Vercel (web) + Render (agent + ingest)
+2. Run all 4 migrations in Supabase SQL editor
+3. Set ALLOW_SEED=true in Vercel env vars
+4. Visit /settings → click "Seed Demo Data"
+5. Watch /dashboard — 8 alerts appear live
+6. Click the ransomware investigation — full reasoning chain, attack timeline, pending actions
+7. Approve/reject actions live on screen
+8. Visit /audit to show the tamper-proof trail
+9. Visit /playbooks to show automated response rules

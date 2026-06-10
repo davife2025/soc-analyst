@@ -1,0 +1,25 @@
+.table { background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+.empty { background: #1e293b; border-radius: 12px; padding: 48px; text-align: center; color: #475569; font-size: 14px; }
+
+.thead { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid #334155; background: #0f172a; }
+.col { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: .07em; font-weight: 600; }
+
+.row { display: flex; align-items: center; padding: 11px 16px; border-bottom: 1px solid #1a2744; cursor: pointer; transition: background .1s; }
+.row:hover { background: #162032; }
+.row:last-child { border-bottom: none; }
+
+.cell { display: flex; align-items: center; overflow: hidden; }
+.time { font-size: 12px; color: #64748b; white-space: nowrap; }
+.entityBadge { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid; font-weight: 500; }
+.action { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #94a3b8; }
+.actionIcon { font-size: 11px; }
+.entityId { font-size: 11px; color: #475569; background: #0f172a; padding: 2px 6px; border-radius: 4px; }
+.actor { font-size: 12px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chevron { font-size: 10px; color: #334155; }
+
+.detail { background: #0f172a; border-bottom: 1px solid #1a2744; padding: 14px 16px; }
+.detailGrid { display: flex; gap: 20px; flex-wrap: wrap; }
+.detailBlock { display: flex; flex-direction: column; gap: 6px; min-width: 200px; flex: 1; }
+.detailLabel { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: .07em; }
+.detailCode { font-size: 12px; color: #94a3b8; background: #1e293b; padding: 4px 8px; border-radius: 4px; }
+.json { font-size: 11px; color: #86efac; background: #1e293b; padding: 8px; border-radius: 6px; overflow-x: auto; line-height: 1.6; max-height: 180px; overflow-y: auto; }

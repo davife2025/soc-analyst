@@ -1,0 +1,19 @@
+.main { min-height: 100vh; padding: 24px; max-width: 1200px; margin: 0 auto; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.back { font-size: 13px; color: #3b82f6; display: block; margin-bottom: 8px; }
+.back:hover { text-decoration: underline; }
+.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #64748b; }
+.stats { background: #1e293b; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #94a3b8; }
+.statItem { font-weight: 600; color: #e2e8f0; }
+
+.filters { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter, .filterActive { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; text-transform: capitalize; transition: all .15s; }
+.filter { background: #1e293b; color: #64748b; }
+.filter:hover { color: #e2e8f0; }
+.filterActive { background: #1d4ed8; color: #fff; }
+
+.pagination { display: flex; align-items: center; gap: 12px; justify-content: center; margin-top: 24px; }
+.pageBtn { background: #1e293b; color: #94a3b8; padding: 7px 16px; border-radius: 8px; font-size: 13px; }
+.pageBtn:hover { color: #e2e8f0; }
+.pageInfo { font-size: 13px; color: #64748b; }

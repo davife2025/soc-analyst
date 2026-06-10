@@ -1,0 +1,12 @@
+.main { min-height: 100vh; padding: 24px; max-width: 900px; margin: 0 auto; }
+.header { margin-bottom: 24px; }
+.back { font-size: 13px; color: #3b82f6; display: block; margin-bottom: 8px; }
+.back:hover { text-decoration: underline; }
+.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #64748b; }
+
+.infoBox { background: #0f2744; border: 1px solid #1e3a5f; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; }
+.infoTitle { font-size: 13px; font-weight: 600; color: #93c5fd; margin-bottom: 8px; }
+.url { display: block; font-size: 13px; background: #0f172a; color: #60a5fa; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; word-break: break-all; }
+.infoText { font-size: 12px; color: #64748b; line-height: 1.6; }
+.infoText code { background: #1e293b; color: #94a3b8; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
