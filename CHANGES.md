@@ -1,75 +1,68 @@
-# Session 04 – Changed & New Files
+# Session 05 – Changed & New Files (Final)
 
 ## Drop-in instructions
-Unzip into your `soc-analyst/` root. No new dependencies — `pnpm install` not required.
+Unzip into `soc-analyst/` root. Run `pnpm install` (new dev dep: @playwright/test).
 
-## New migrations (optional)
-Run in Supabase SQL editor:
-1. `packages/db/migrations/004_seed_tracking.sql`
+## No new migrations required.
 
 ## New env vars
-Add to `.env`:
+None required. Optional for CI:
 ```
-ALLOW_SEED=true          # enables /api/seed on this environment
-SEED_SECRET=any-string   # optional extra protection for the seed endpoint
+TEST_USER_EMAIL=your-test-user@example.com
+TEST_USER_PASSWORD=test-password
+PLAYWRIGHT_BASE_URL=http://localhost:3000
 ```
 
 ---
 
 ## New files
 
-### apps/web/src/app/audit/page.tsx + audit.module.css
-Paginated audit log viewer with entity-type filters (all / alert / investigation / action / playbook / token).
+### apps/web/src/lib/rate-limit.ts
+Sliding window rate limiter. Presets: webhook (100/min), api (200/min), auth (10/min), seed (5/hr), actions (50/min).
 
-### apps/web/src/components/AuditTable.tsx + .module.css
-Expandable audit log table — click any row to see full entity ID, metadata, and result payload.
+### apps/web/src/lib/security-headers.ts
+Security header helpers: CSP, X-Frame-Options, HSTS etc. Used in middleware + Next.js config.
 
-### apps/web/src/app/settings/tokens/page.tsx + tokens.module.css
-Webhook token management page (admin only). Shows webhook URL + header instructions.
+### apps/web/src/middleware.ts  ← REPLACES session-03 version
+Full hardening: rate limiting by route type, security headers on every response, 401 JSON for unauthenticated API calls.
 
-### apps/web/src/components/TokenManager.tsx + .module.css
-Generate / revoke webhook tokens. Raw token shown once with one-click copy. Hashed before storage.
+### apps/web/next.config.ts  ← REPLACES session-01 version
+Added security headers (HSTS, X-Content-Type-Options etc.), poweredByHeader: false.
 
-### apps/web/src/app/api/tokens/route.ts
-POST: generate a new token (sha256-hashed, raw returned once). Writes to audit_log.
+### apps/web/playwright.config.ts
+Playwright config — chromium only, HTML + list reporters, CI retries.
 
-### apps/web/src/app/api/tokens/[id]/route.ts
-DELETE: revoke a token (sets active=false). Writes to audit_log.
+### apps/web/e2e/auth.spec.ts
+Auth flow tests: redirect, login page render, tab switching, invalid credentials.
 
-### apps/web/src/app/api/seed/route.ts
-POST: seeds 8 realistic demo alerts + 1 full ransomware investigation with reasoning chain + 5 actions.
-DELETE: clears all seeded demo data.
-Blocked in production unless ALLOW_SEED=true.
+### apps/web/e2e/webhook.spec.ts
+Webhook security tests: no token → 401, invalid → 403, valid → 200, bulk array.
 
-### apps/web/src/components/SeedPanel.tsx + .module.css
-One-click seed / clear UI for the settings page.
+### apps/web/e2e/dashboard.spec.ts
+Dashboard tests (requires TEST_USER_EMAIL/PASSWORD): nav, stats, navigation, seed flow.
 
-### apps/web/src/app/settings/page.tsx + settings.module.css
-Settings hub with Developer Tools (seed panel) + quick links to audit, tokens, playbooks.
+### apps/web/e2e/playbooks.spec.ts
+Playbooks tests: default playbooks visible, step counts, trigger conditions.
 
-### packages/db/migrations/004_seed_tracking.sql
-Optional seed_runs table for tracking demo data loads.
+### apps/web/src/app/api/webhooks/splunk/route.ts  ← REPLACES session-03 version
+Added input sanitization (max key/value lengths), rate limiting, bulk event capping at 100.
+
+### apps/web/src/app/api/actions/route.ts  ← NEW
+GET endpoint for fetching actions by investigation_id or status.
+
+### .github/workflows/ci.yml
+GitHub Actions: type-check + lint + Playwright E2E on push/PR to main.
+
+### README.md  ← REPLACES root README
+Full hackathon submission README: architecture ASCII diagram, stack table, quick start, 8-step demo script, security features, Splunk integration guide, DB schema.
+
+### docs/VIDEO_SCRIPT.md
+Shot-by-shot 3:30 video script with narration, visuals, and recording notes.
+
+### docs/SUBMISSION_CHECKLIST.md
+Complete submission checklist — code, features, security, testing, assets.
 
 ## Changed files
 
-### apps/web/src/app/dashboard/page.tsx
-Nav updated: added Audit, Settings, Tokens (admin only) links.
-
-### apps/web/src/app/dashboard/dashboard.module.css
-Minor nav spacing tweak.
-
-### .env.example
-Added ALLOW_SEED and SEED_SECRET vars.
-
----
-
-## Hackathon demo flow
-1. Deploy to Vercel (web) + Render (agent + ingest)
-2. Run all 4 migrations in Supabase SQL editor
-3. Set ALLOW_SEED=true in Vercel env vars
-4. Visit /settings → click "Seed Demo Data"
-5. Watch /dashboard — 8 alerts appear live
-6. Click the ransomware investigation — full reasoning chain, attack timeline, pending actions
-7. Approve/reject actions live on screen
-8. Visit /audit to show the tamper-proof trail
-9. Visit /playbooks to show automated response rules
+### apps/web/package.json
+Added @playwright/test devDependency + test:e2e scripts.
