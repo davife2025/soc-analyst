@@ -1,0 +1,33 @@
+.panel { background: #1e293b; border-radius: 10px; padding: 20px; }
+.title { font-size: 14px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing:.06em; margin-bottom: 16px; display:flex; align-items:center; gap:8px; }
+.badge { background: #f59e0b; color: #000; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight:700; }
+.empty { color: #475569; font-size: 14px; }
+
+.section { margin-bottom: 16px; }
+.sectionLabel { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing:.08em; margin-bottom: 8px; }
+
+.card { background: #0f172a; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #1e3a5f; }
+.card[data-status="approved"] { border-color: #166534; }
+.card[data-status="executed"] { border-color: #166534; }
+.card[data-status="rejected"] { border-color: #7f1d1d; opacity: .6; }
+
+.cardHeader { display: flex; align-items: flex-start; gap: 10px; }
+.icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.cardInfo { flex: 1; }
+.actionType { font-size: 13px; font-weight: 600; color: #e2e8f0; text-transform: capitalize; }
+.description { font-size: 12px; color: #94a3b8; margin-top: 2px; line-height: 1.5; }
+
+.statusDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; margin-top:4px; }
+.pending  { background: #f59e0b; }
+.approved { background: #22c55e; }
+.rejected { background: #ef4444; }
+
+.params { font-size: 11px; background: #1e293b; color: #86efac; padding: 8px; border-radius: 4px; margin-top: 8px; overflow-x: auto; }
+.result { font-size: 12px; color: #64748b; margin-top: 6px; font-style: italic; }
+
+.buttons { display: flex; gap: 8px; margin-top: 10px; }
+.approve { flex: 1; background: #166534; color: #86efac; border: none; border-radius: 6px; padding: 7px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.approve:hover:not(:disabled) { background: #15803d; }
+.reject  { flex: 1; background: #1e293b; color: #f87171; border: 1px solid #7f1d1d; border-radius: 6px; padding: 7px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.reject:hover:not(:disabled) { background: #450a0a; }
+button:disabled { opacity: .5; cursor: not-allowed; }

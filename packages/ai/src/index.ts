@@ -1,4 +1,5 @@
 export { KimiClient } from './kimi-client'
 export { investigateAlert } from './investigate'
 export { SYSTEM_PROMPT } from './prompts'
-export type { InvestigationInput, InvestigationOutput, AgentTool } from './types'
+export { lookupThreatIntel, queryVirusTotal, queryAbuseIPDB, queryCVE } from './threat-intel'
+export type { InvestigationInput, InvestigationOutput, AgentTool, ThreatIntelResult } from './types'

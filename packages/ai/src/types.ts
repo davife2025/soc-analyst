@@ -35,3 +35,13 @@ export interface AgentTool {
   description: string
   parameters: Record<string, unknown>
 }
+
+export interface ThreatIntelResult {
+  indicator: string
+  indicatorType: 'ip' | 'domain' | 'hash' | 'cve'
+  threatScore: number
+  malicious: boolean
+  source: string
+  details: Record<string, unknown>
+  expiresAt: string
+}
