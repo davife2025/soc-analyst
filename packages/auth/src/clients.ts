@@ -1,23 +1,17 @@
-import { createServerClient as supabaseServerClient, createBrowserClient as supabaseBrowserClient } from '@supabase/ssr'
+import { createBrowserClient as supabaseBrowserClient } from '@supabase/ssr'
 import type { Database } from '@soc/db'
 
-export function createServerClient(
-  cookieStore: { get: (name: string) => { value: string } | undefined }
-) {
-  return supabaseServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name) { return cookieStore.get(name)?.value },
-      },
-    }
-  )
-}
+// Browser client — singleton pattern for client components
+let browserClient: ReturnType<typeof supabaseBrowserClient<Database>> | null = null
 
 export function createBrowserClient() {
-  return supabaseBrowserClient<Database>(
+  if (browserClient) return browserClient
+  browserClient = supabaseBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+  return browserClient
 }
+
+// Named export for server usage (re-exported from session.ts)
+export { createRequestClient as createServerClient } from './session'

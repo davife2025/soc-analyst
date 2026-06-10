@@ -2,8 +2,11 @@ services:
   - type: worker
     name: soc-agent
     env: node
-    buildCommand: pnpm install && pnpm --filter @soc/agent build
+    region: oregon
+    plan: starter
+    buildCommand: cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @soc/agent build
     startCommand: node apps/agent/dist/index.js
+    healthCheckPath: /
     envVars:
       - key: SUPABASE_URL
         sync: false
@@ -15,5 +18,11 @@ services:
         value: moonshotai/Kimi-K2-Instruct
       - key: SPLUNK_HOST
         sync: false
+      - key: SPLUNK_PORT
+        value: "8089"
       - key: SPLUNK_TOKEN
         sync: false
+      - key: POLL_INTERVAL_MS
+        value: "30000"
+      - key: PORT
+        value: "10000"

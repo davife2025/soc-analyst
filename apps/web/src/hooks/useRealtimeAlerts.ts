@@ -1,76 +1,103 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
-import { createClient } from '@soc/db'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { createBrowserClient } from '@soc/auth'
 import type { Database } from '@soc/db'
 
 type Alert = Database['public']['Tables']['alerts']['Row']
 type Investigation = Database['public']['Tables']['investigations']['Row']
 
-export function useRealtimeAlerts() {
-  const [alerts, setAlerts] = useState<Alert[]>([])
-  const [loading, setLoading] = useState(true)
+export function useRealtimeAlerts(initialAlerts: Alert[] = []) {
+  const [alerts, setAlerts] = useState<Alert[]>(initialAlerts)
+  const [loading, setLoading] = useState(!initialAlerts.length)
+  const channelRef = useRef<ReturnType<ReturnType<typeof createBrowserClient>['channel']> | null>(null)
 
   const fetchAlerts = useCallback(async () => {
-    const db = createClient()
-    const { data } = await db
-      .from('alerts')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50)
-    if (data) setAlerts(data)
-    setLoading(false)
+    try {
+      const db = createBrowserClient()
+      const { data, error } = await db
+        .from('alerts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50)
+      if (error) throw error
+      if (data) setAlerts(data)
+    } catch (err) {
+      console.error('[useRealtimeAlerts] fetch error:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
-    fetchAlerts()
-    const db = createClient()
+    if (!initialAlerts.length) fetchAlerts()
+
+    const db = createBrowserClient()
     const channel = db
-      .channel('alerts-live')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' },
+      .channel('alerts-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'alerts' },
         (payload) => {
           setAlerts(prev => [payload.new as Alert, ...prev].slice(0, 50))
         }
       )
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'alerts' },
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'alerts' },
         (payload) => {
-          setAlerts(prev => prev.map(a => a.id === (payload.new as Alert).id ? payload.new as Alert : a))
+          setAlerts(prev =>
+            prev.map(a => a.id === (payload.new as Alert).id ? { ...a, ...(payload.new as Alert) } : a)
+          )
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('[realtime] alerts subscribed')
+        if (status === 'CHANNEL_ERROR') console.warn('[realtime] alerts channel error — retrying')
+      })
 
+    channelRef.current = channel
     return () => { db.removeChannel(channel) }
-  }, [fetchAlerts])
+  }, [fetchAlerts, initialAlerts.length])
 
   return { alerts, loading, refetch: fetchAlerts }
 }
 
-export function useRealtimeInvestigations(alertId?: string) {
-  const [investigations, setInvestigations] = useState<Investigation[]>([])
+export function useRealtimeInvestigations(initialInvestigations: Investigation[] = []) {
+  const [investigations, setInvestigations] = useState<Investigation[]>(initialInvestigations)
 
   useEffect(() => {
-    const db = createClient()
-    let query = db.from('investigations').select('*').order('created_at', { ascending: false })
-    if (alertId) query = query.eq('alert_id', alertId)
+    const db = createBrowserClient()
 
-    query.then(({ data }) => { if (data) setInvestigations(data) })
+    if (!initialInvestigations.length) {
+      db.from('investigations')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20)
+        .then(({ data }) => { if (data) setInvestigations(data) })
+    }
 
     const channel = db
-      .channel('investigations-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'investigations' },
+      .channel('investigations-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'investigations' },
         (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setInvestigations(prev => [payload.new as Investigation, ...prev])
-          } else if (payload.eventType === 'UPDATE') {
-            setInvestigations(prev => prev.map(i =>
-              i.id === (payload.new as Investigation).id ? payload.new as Investigation : i
-            ))
-          }
+          setInvestigations(prev => [payload.new as Investigation, ...prev])
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'investigations' },
+        (payload) => {
+          setInvestigations(prev =>
+            prev.map(i => i.id === (payload.new as Investigation).id ? { ...i, ...(payload.new as Investigation) } : i)
+          )
         }
       )
       .subscribe()
 
     return () => { db.removeChannel(channel) }
-  }, [alertId])
+  }, [initialInvestigations.length])
 
   return { investigations }
 }

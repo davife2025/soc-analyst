@@ -1,68 +1,70 @@
-# Session 05 – Changed & New Files (Final)
+# Session 06 – Bug Fixes & Polish
 
 ## Drop-in instructions
-Unzip into `soc-analyst/` root. Run `pnpm install` (new dev dep: @playwright/test).
-
-## No new migrations required.
-
-## New env vars
-None required. Optional for CI:
-```
-TEST_USER_EMAIL=your-test-user@example.com
-TEST_USER_PASSWORD=test-password
-PLAYWRIGHT_BASE_URL=http://localhost:3000
-```
+Unzip into `soc-analyst/` root. No new dependencies. No new migrations.
 
 ---
 
-## New files
+## Fixes applied
 
-### apps/web/src/lib/rate-limit.ts
-Sliding window rate limiter. Presets: webhook (100/min), api (200/min), auth (10/min), seed (5/hr), actions (50/min).
+### FIX 1 — packages/auth/src/session.ts + clients.ts + index.ts
+- `cookies()` is now properly awaited (Next.js 14 requirement)
+- Using `getUser()` instead of `getSession()` — more secure, validates with Supabase server
+- Browser client is now a singleton (prevents re-initialization on every render)
 
-### apps/web/src/lib/security-headers.ts
-Security header helpers: CSP, X-Frame-Options, HSTS etc. Used in middleware + Next.js config.
+### FIX 2 — packages/db/src/client.ts + index.ts
+- Added `getEnv()` helper with clear error messages for missing vars
+- `createServiceClient()` now validates env vars at call time rather than silently failing
 
-### apps/web/src/middleware.ts  ← REPLACES session-03 version
-Full hardening: rate limiting by route type, security headers on every response, 401 JSON for unauthenticated API calls.
+### FIX 3 — apps/web/src/hooks/useRealtimeAlerts.ts
+- Uses `createBrowserClient` (anon key) not service role client
+- Accepts `initialAlerts` / `initialInvestigations` props to avoid flash of empty state
+- Added channel status logging + graceful CHANNEL_ERROR handling
+- Cleanup ref prevents stale subscriptions on re-render
 
-### apps/web/next.config.ts  ← REPLACES session-01 version
-Added security headers (HSTS, X-Content-Type-Options etc.), poweredByHeader: false.
+### FIX 4 — apps/web/src/components/LiveDashboard.tsx
+- Passes `initialAlerts` and `initialInvestigations` down to hooks
+- No more empty flash on first load
 
-### apps/web/playwright.config.ts
-Playwright config — chromium only, HTML + list reporters, CI retries.
+### FIX 5 — apps/web/src/app/investigations/[id]/page.tsx + CSS
+- `params` is now `Promise<{ id: string }>` and awaited (Next.js 14)
+- Type casting cleaned up with proper `InvWithAlert` interface
+- Added spinning "Agent is investigating" state when status is 'running'
+- Added "View audit log" link in header meta
+- Responsive grid (single column on mobile)
 
-### apps/web/e2e/auth.spec.ts
-Auth flow tests: redirect, login page render, tab switching, invalid credentials.
+### FIX 6 — apps/web/src/components/ActionPanel.tsx
+- Error display when PATCH fails
+- Reverts optimistic update on failure
+- Proper null check on `action.parameters`
 
-### apps/web/e2e/webhook.spec.ts
-Webhook security tests: no token → 401, invalid → 403, valid → 200, bulk array.
+### FIX 7 — apps/agent/src/index.ts
+- Validates required env vars on startup and exits with clear message
+- Exposes HTTP health check on `PORT` (required for Render worker)
+- Concurrent alert processing (up to 3 at once) with `Promise.allSettled`
+- Alert claiming uses conditional update (`.eq('status','new')`) to prevent double-processing
+- Releases claim if investigation creation fails
+- Error logged to audit_log on failure
 
-### apps/web/e2e/dashboard.spec.ts
-Dashboard tests (requires TEST_USER_EMAIL/PASSWORD): nav, stats, navigation, seed flow.
+### FIX 8 — packages/ai/src/kimi-client.ts
+- Added `X-Wait-For-Model: true` header (handles HF cold starts gracefully)
+- Clear error messages for 503 (model loading) and 401 (bad API key)
 
-### apps/web/e2e/playbooks.spec.ts
-Playbooks tests: default playbooks visible, step counts, trigger conditions.
+### FIX 9 — packages/ai/src/investigate.ts
+- Retry loop (up to 2 retries) on HF 503/model-loading errors with 20s backoff
+- Guards against empty response from model
+- Better `parseOutput`: extracts confidence score, attack chain bullets, and action keywords
+- Tool call argument parsing wrapped in try/catch
 
-### apps/web/src/app/api/webhooks/splunk/route.ts  ← REPLACES session-03 version
-Added input sanitization (max key/value lengths), rate limiting, bulk event capping at 100.
+### FIX 10 — All dynamic API routes
+Next.js 14 requires `params` to be `Promise<{ id: string }>` and awaited:
+- apps/web/src/app/api/actions/[id]/route.ts
+- apps/web/src/app/api/investigations/[id]/route.ts
+- apps/web/src/app/api/playbooks/[id]/route.ts
+- apps/web/src/app/api/tokens/[id]/route.ts
+Also added input validation on status field in actions route.
 
-### apps/web/src/app/api/actions/route.ts  ← NEW
-GET endpoint for fetching actions by investigation_id or status.
-
-### .github/workflows/ci.yml
-GitHub Actions: type-check + lint + Playwright E2E on push/PR to main.
-
-### README.md  ← REPLACES root README
-Full hackathon submission README: architecture ASCII diagram, stack table, quick start, 8-step demo script, security features, Splunk integration guide, DB schema.
-
-### docs/VIDEO_SCRIPT.md
-Shot-by-shot 3:30 video script with narration, visuals, and recording notes.
-
-### docs/SUBMISSION_CHECKLIST.md
-Complete submission checklist — code, features, security, testing, assets.
-
-## Changed files
-
-### apps/web/package.json
-Added @playwright/test devDependency + test:e2e scripts.
+### FIX 11 — Deployment configs
+- apps/agent/render.yaml: added PORT=10000, POLL_INTERVAL_MS, correct build commands
+- apps/ingest/render.yaml: corrected build path
+- apps/web/vercel.json: added env var mappings

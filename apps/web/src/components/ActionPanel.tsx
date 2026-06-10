@@ -11,37 +11,56 @@ interface Props {
 }
 
 const ACTION_ICONS: Record<string, string> = {
-  block_ip: '🚫',
-  isolate_host: '🔒',
-  reset_credentials: '🔑',
-  create_ticket: '📋',
-  notify_team: '📣',
-  collect_forensics: '🔍',
+  block_ip:            '🚫',
+  isolate_host:        '🔒',
+  reset_credentials:   '🔑',
+  create_ticket:       '📋',
+  notify_team:         '📣',
+  collect_forensics:   '🔍',
+  add_to_watchlist:    '👁️',
 }
 
-export function ActionPanel({ investigationId, actions: initial }: Props) {
+export function ActionPanel({ actions: initial }: Props) {
   const [actions, setActions] = useState<Action[]>(initial)
   const [loading, setLoading] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleAction(actionId: string, decision: 'approved' | 'rejected') {
     setLoading(actionId)
+    setError(null)
+
+    // Optimistic update
+    setActions(prev => prev.map(a =>
+      a.id === actionId ? { ...a, status: decision } : a
+    ))
+
     try {
       const res = await fetch(`/api/actions/${actionId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: decision, approved_by: 'analyst@soc' }),
       })
-      if (res.ok) {
-        const updated = await res.json() as Action
-        setActions(prev => prev.map(a => a.id === actionId ? updated : a))
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(body.error ?? `HTTP ${res.status}`)
       }
+
+      const updated = await res.json() as Action
+      setActions(prev => prev.map(a => a.id === actionId ? updated : a))
+    } catch (err) {
+      setError(String(err))
+      // Revert optimistic update
+      setActions(prev => prev.map(a =>
+        a.id === actionId ? { ...a, status: 'pending' } : a
+      ))
     } finally {
       setLoading(null)
     }
   }
 
-  const pending = actions.filter(a => a.status === 'pending')
-  const decided = actions.filter(a => a.status !== 'pending')
+  const pending  = actions.filter(a => a.status === 'pending')
+  const decided  = actions.filter(a => a.status !== 'pending')
 
   return (
     <div className={styles.panel}>
@@ -49,6 +68,8 @@ export function ActionPanel({ investigationId, actions: initial }: Props) {
         Recommended Actions
         {pending.length > 0 && <span className={styles.badge}>{pending.length} pending</span>}
       </h2>
+
+      {error && <p className={styles.error}>{error}</p>}
 
       {!actions.length && (
         <p className={styles.empty}>No actions generated yet</p>
@@ -88,7 +109,7 @@ function ActionCard({ action, loading, onApprove, onReject }: {
   onReject?: () => void
 }) {
   const icon = ACTION_ICONS[action.action_type] ?? '⚡'
-  const isPending = action.status === 'pending'
+  const isPending  = action.status === 'pending'
   const isApproved = action.status === 'approved' || action.status === 'executed'
   const isRejected = action.status === 'rejected'
 
@@ -100,33 +121,23 @@ function ActionCard({ action, loading, onApprove, onReject }: {
           <span className={styles.actionType}>{action.action_type.replace(/_/g, ' ')}</span>
           <p className={styles.description}>{action.description}</p>
         </div>
-        <span className={`${styles.statusDot} ${isApproved ? styles.approved : isRejected ? styles.rejected : styles.pending}`} />
+        <span className={`${styles.statusDot} ${isApproved ? styles.approved : isRejected ? styles.rejected : styles.pendingDot}`} />
       </div>
 
-      {Object.keys(action.parameters as object).length > 0 && (
+      {action.parameters && Object.keys(action.parameters as object).length > 0 && (
         <pre className={styles.params}>
           {JSON.stringify(action.parameters, null, 2)}
         </pre>
       )}
 
-      {action.result && (
-        <p className={styles.result}>Result: {action.result}</p>
-      )}
+      {action.result && <p className={styles.result}>Result: {action.result}</p>}
 
       {isPending && onApprove && onReject && (
         <div className={styles.buttons}>
-          <button
-            className={styles.approve}
-            onClick={onApprove}
-            disabled={loading}
-          >
+          <button className={styles.approve} onClick={onApprove} disabled={loading}>
             {loading ? '…' : '✓ Approve'}
           </button>
-          <button
-            className={styles.reject}
-            onClick={onReject}
-            disabled={loading}
-          >
+          <button className={styles.reject} onClick={onReject} disabled={loading}>
             ✕ Reject
           </button>
         </div>

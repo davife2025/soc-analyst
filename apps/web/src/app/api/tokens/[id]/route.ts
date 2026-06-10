@@ -1,13 +1,17 @@
 import { createServiceClient } from '@soc/db'
 import { NextResponse } from 'next/server'
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
   const db = createServiceClient()
 
   const { data, error } = await db
     .from('webhook_tokens')
     .update({ active: false })
-    .eq('id', params.id)
+    .eq('id', id)
     .select('id, name')
     .single()
 
@@ -15,7 +19,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
 
   await db.from('audit_log').insert({
     entity_type: 'token',
-    entity_id: params.id,
+    entity_id: id,
     action: 'revoked',
     actor: 'admin',
     before: null,

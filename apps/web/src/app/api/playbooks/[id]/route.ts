@@ -1,16 +1,21 @@
 import { createServiceClient } from '@soc/db'
-import { requireAuth } from '@soc/auth'
 import { NextResponse } from 'next/server'
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  await requireAuth('analyst')
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
   const db = createServiceClient()
-  const body = await req.json() as { active?: boolean }
+
+  let body: { active?: boolean }
+  try { body = await req.json() }
+  catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
 
   const { data, error } = await db
     .from('playbooks')
     .update(body)
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single()
 

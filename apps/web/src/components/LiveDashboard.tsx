@@ -15,28 +15,25 @@ interface Props {
 
 export function LiveDashboard({ initialAlerts, initialInvestigations }: Props) {
   const router = useRouter()
-  const { alerts } = useRealtimeAlerts()
-  const { investigations } = useRealtimeInvestigations()
-
-  const liveAlerts = alerts.length ? alerts : initialAlerts
-  const liveInvs = investigations.length ? investigations : initialInvestigations
+  const { alerts } = useRealtimeAlerts(initialAlerts)
+  const { investigations } = useRealtimeInvestigations(initialInvestigations)
 
   const stats = {
-    critical: liveAlerts.filter(a => a.severity === 'critical').length,
-    new: liveAlerts.filter(a => a.status === 'new').length,
-    investigating: liveAlerts.filter(a => a.status === 'investigating').length,
-    resolved: liveAlerts.filter(a => a.status === 'resolved').length,
+    critical:     alerts.filter(a => a.severity === 'critical').length,
+    new:          alerts.filter(a => a.status === 'new').length,
+    investigating:alerts.filter(a => a.status === 'investigating').length,
+    resolved:     alerts.filter(a => a.status === 'resolved').length,
   }
 
   return (
     <>
       <section className={styles.stats}>
-        {[
-          { label: 'Critical', value: stats.critical, color: '#ef4444' },
-          { label: 'New', value: stats.new, color: '#3b82f6' },
-          { label: 'Investigating', value: stats.investigating, color: '#f59e0b' },
-          { label: 'Resolved', value: stats.resolved, color: '#22c55e' },
-        ].map(s => (
+        {([
+          { label: 'Critical',     value: stats.critical,      color: '#ef4444' },
+          { label: 'New',          value: stats.new,           color: '#3b82f6' },
+          { label: 'Investigating',value: stats.investigating,  color: '#f59e0b' },
+          { label: 'Resolved',     value: stats.resolved,      color: '#22c55e' },
+        ] as const).map(s => (
           <div key={s.label} className={styles.stat}>
             <span className={styles.statNum} style={{ color: s.color }}>{s.value}</span>
             <span className={styles.statLabel}>{s.label}</span>
@@ -48,7 +45,7 @@ export function LiveDashboard({ initialAlerts, initialInvestigations }: Props) {
         <div className={styles.panel}>
           <h2 className={styles.panelTitle}>Live Alerts</h2>
           <div className={styles.list}>
-            {liveAlerts.map(alert => (
+            {alerts.map(alert => (
               <AlertCard
                 key={alert.id}
                 id={alert.id}
@@ -60,14 +57,14 @@ export function LiveDashboard({ initialAlerts, initialInvestigations }: Props) {
                 onClick={() => router.push(`/investigations?alertId=${alert.id}`)}
               />
             ))}
-            {!liveAlerts.length && <p className={styles.empty}>No alerts — system is quiet</p>}
+            {!alerts.length && <p className={styles.empty}>No alerts — system is quiet</p>}
           </div>
         </div>
 
         <div className={styles.panel}>
           <h2 className={styles.panelTitle}>Active Investigations</h2>
           <div className={styles.list}>
-            {liveInvs.map(inv => (
+            {investigations.map(inv => (
               <div
                 key={inv.id}
                 className={styles.invCard}
@@ -82,14 +79,16 @@ export function LiveDashboard({ initialAlerts, initialInvestigations }: Props) {
                   )}
                 </div>
                 <div className={styles.invSummary}>
-                  {inv.summary ? inv.summary.slice(0, 120) + '…' : 'Analysis in progress…'}
+                  {inv.summary
+                    ? inv.summary.slice(0, 120) + (inv.summary.length > 120 ? '…' : '')
+                    : 'Analysis in progress…'}
                 </div>
                 <div className={styles.invMeta}>
                   {new Date(inv.created_at).toLocaleString()}
                 </div>
               </div>
             ))}
-            {!liveInvs.length && <p className={styles.empty}>No active investigations</p>}
+            {!investigations.length && <p className={styles.empty}>No active investigations</p>}
           </div>
         </div>
       </section>
