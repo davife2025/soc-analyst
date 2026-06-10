@@ -1,65 +1,79 @@
-# Session 02 – Changed & New Files
+# Session 03 – Changed & New Files
 
 ## Drop-in instructions
-Unzip into your `soc-analyst/` root. All paths match. Existing files are replaced, new files are added. Run `pnpm install` after if any package.json changed.
+Unzip into your `soc-analyst/` root. Run `pnpm install` after (new package: @soc/auth, @supabase/ssr).
 
 ## New migrations
-Run in Supabase SQL editor (in order):
-1. `packages/db/migrations/002_indexes_and_rls.sql`
+Run in Supabase SQL editor in order:
+1. `packages/db/migrations/003_auth_and_profiles.sql`
+
+## Supabase Dashboard setup
+1. Go to Authentication → Providers → Email: enable "Confirm email" + "Enable email confirmations"
+2. Go to Authentication → URL Configuration → set Site URL to your Vercel domain
+3. Add redirect URL: `https://your-domain.vercel.app/auth/callback`
 
 ## New env vars
-Add to `.env`:
 ```
-VIRUSTOTAL_API_KEY=your-vt-api-key
-ABUSEIPDB_API_KEY=your-abuseipdb-api-key
+WEBHOOK_SECRET=your-random-secret-here
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...   (optional)
 ```
 
 ---
+
+## New package: packages/auth
+Supabase SSR auth client with server/browser clients, session helpers, `requireAuth()`, role-based access.
+
+## New files
+
+### apps/web/src/middleware.ts
+Route protection — redirects unauthenticated users to /login.
+
+### apps/web/src/app/(auth)/login/page.tsx + login.module.css
+Login page with password + magic link tabs.
+
+### apps/web/src/app/(auth)/callback/route.ts
+OAuth/magic link callback handler.
+
+### apps/web/src/components/LoginForm.tsx + .module.css
+Client-side login form component.
+
+### apps/web/src/components/UserMenu.tsx + .module.css
+Authenticated user dropdown with role badge + sign out.
+
+### apps/web/src/components/PlaybookCard.tsx + .module.css
+Playbook viewer with activate/deactivate toggle.
+
+### apps/web/src/app/playbooks/page.tsx + playbooks.module.css
+Playbooks management page. Seeds 3 default playbooks on first load.
+
+### apps/web/src/app/api/playbooks/[id]/route.ts
+PATCH endpoint to activate/deactivate playbooks.
+
+### apps/web/src/app/api/webhooks/splunk/route.ts
+Authenticated Splunk webhook endpoint. Accepts Bearer token or X-Splunk-Webhook-Token header.
+
+### packages/ai/src/playbook-engine.ts
+Core playbook engine: condition matching, step execution, Slack notify + ticket creation stubs.
+
+### packages/db/migrations/003_auth_and_profiles.sql
+Profiles table, auto-create trigger, RLS policies, webhook_tokens table.
 
 ## Changed files
 
 ### apps/web/src/app/dashboard/page.tsx
-Server component now hands off to `<LiveDashboard>` client component.
+Now calls `requireAuth()`, shows UserMenu + Playbooks nav link.
 
 ### apps/web/src/app/dashboard/dashboard.module.css
-Updated styles with live badge animation.
+Updated header with nav.
 
-### apps/agent/src/tools.ts
-Now calls real VirusTotal + AbuseIPDB APIs. Writes results to threat_intel cache.
+### apps/web/package.json
+Added @soc/auth, @supabase/ssr.
+
+### packages/db/src/types.ts
+Added profiles, webhook_tokens tables.
 
 ### packages/ai/src/index.ts
-Exports threat intel functions.
+Exports matchPlaybooks, executePlaybook.
 
-### packages/ai/src/types.ts
-Added `ThreatIntelResult` type.
-
----
-
-## New files
-
-### apps/web/src/hooks/useRealtimeAlerts.ts
-Supabase Realtime hooks for live alert + investigation updates.
-
-### apps/web/src/components/LiveDashboard.tsx + .module.css
-Client component wrapping the dashboard with live subscriptions.
-
-### apps/web/src/components/ReasoningChain.tsx + .module.css
-Expandable step-by-step agent reasoning viewer.
-
-### apps/web/src/components/AttackTimeline.tsx + .module.css
-MITRE ATT&CK colored attack chain timeline.
-
-### apps/web/src/components/ActionPanel.tsx + .module.css
-Approve/reject action UI with optimistic updates.
-
-### apps/web/src/app/investigations/[id]/page.tsx + investigation.module.css
-Full investigation detail page.
-
-### apps/web/src/app/api/actions/[id]/route.ts
-PATCH endpoint for approving/rejecting actions. Writes to audit_log.
-
-### packages/ai/src/threat-intel.ts
-VirusTotal, AbuseIPDB, NVD CVE lookup with unified score merging.
-
-### packages/db/migrations/002_indexes_and_rls.sql
-Performance indexes + RLS policies.
+### apps/agent/src/index.ts
+After investigation completes, runs playbook matching and auto-executes safe actions.

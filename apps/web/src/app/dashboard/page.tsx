@@ -1,10 +1,13 @@
 import { createServiceClient } from '@soc/db'
+import { requireAuth } from '@soc/auth'
 import styles from './dashboard.module.css'
 import { LiveDashboard } from '../../components/LiveDashboard'
+import { UserMenu } from '../../components/UserMenu'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
+  const user = await requireAuth()
   const db = createServiceClient()
 
   const [{ data: alerts }, { data: investigations }] = await Promise.all([
@@ -19,6 +22,11 @@ export default async function DashboardPage() {
           <h1>SOC Analyst</h1>
           <span className={styles.badge}>● Live · Kimi K2</span>
         </div>
+        <nav className={styles.nav}>
+          <a href="/dashboard" className={styles.navLink}>Dashboard</a>
+          <a href="/playbooks" className={styles.navLink}>Playbooks</a>
+        </nav>
+        <UserMenu user={user} />
       </header>
       <LiveDashboard initialAlerts={alerts ?? []} initialInvestigations={investigations ?? []} />
     </main>
