@@ -1,66 +1,99 @@
-# Session 10 – Agent Health, Export, Final Polish
+# Session 11 – Full Audit & Fix Pack
 
 ## Drop-in instructions
-Unzip into `soc-analyst/` root. No new npm dependencies. Run migration 007.
-
-## New migrations
-Run in Supabase SQL editor:
-1. `packages/db/migrations/007_agent_health.sql`
-
-## New env vars (optional)
-```
-HEARTBEAT_INTERVAL_MS=30000    # how often agent emits heartbeat (default 30s)
-AGENT_VERSION=1.0.0            # shown in health widget
-```
+Unzip into `soc-analyst/` root. Run `pnpm install` after (agent package.json changed).
+No new migrations required.
 
 ---
 
-## New files
+## What was audited
 
-### apps/agent/src/heartbeat.ts
-Emits heartbeat to `agent_heartbeats` table every 30s:
-- alerts_queued (new alerts in DB), alerts_processed_1h, last_investigation_at
-- status: healthy / degraded (queue > 50) / error
-- process PID + uptime in metadata
-- Trims to 1000 most recent entries
+A full cross-session review of all 10 previous sessions covering:
+- Import/export chains across all packages
+- Type completeness (all 10 DB tables)
+- API route correctness (async params, auth, error handling)
+- Component correctness (naming conflicts, null safety)
+- Build configuration (turbo, pnpm workspace)
+- Environment variables (complete reference)
 
-### apps/web/src/app/api/health/route.ts
-GET: returns agent online status, last seen, uptime %, queue depth, processed/hr,
-totals (alerts + investigations), and last 20 heartbeats for sparkline.
+---
 
-### apps/web/src/components/AgentHealthWidget.tsx + .module.css
-Dashboard widget showing:
-- Online/offline/degraded status with pulsing dot
-- Queue depth, processed/hr, uptime %, process uptime
-- 20-point heartbeat sparkline (green=healthy, amber=degraded, red=error)
-- Polls /api/health every 30s, shimmer skeleton while loading
+## Fixes
 
-### apps/web/src/app/api/export/alerts/route.ts
-GET with query params (since, severity, status): streams CSV of up to 5000 alerts.
-Proper escaping for fields with commas/quotes/newlines.
+### FIX 1 — apps/agent/package.json
+Added `@soc/auth` as a dependency. The agent's notes route and heartbeat use auth helpers
+that required this package but it was never declared.
 
-### apps/web/src/app/api/export/investigation/route.ts
-GET ?id=&format=(txt|json):
-- txt: full formatted incident report with alert details, summary, attack chain,
-  actions, reasoning chain, analyst notes — ready for email/ticket attachment
-- json: raw structured data for integration
+### FIX 2 — packages/ai/src/index.ts
+Consolidated all exports across sessions 02–07 into one definitive file.
+Added missing `ReasoningStep`, `RecommendedAction` type exports.
+Added `PlaybookMatch` type export from playbook-engine (not just the value).
+Added `INVESTIGATION_PROMPT` export (was exported from prompts.ts but not re-exported).
 
-### apps/web/src/components/ExportButtons.tsx + .module.css
-Download buttons that trigger blob download with proper filename from
-Content-Disposition header. Works for both alerts CSV and investigation reports.
+### FIX 3 — packages/auth/src/index.ts
+Added `createRequestClient` to exports. The S06 fix added it to session.ts but
+the index.ts wasn't updated until now, so any consumer importing from `@soc/auth`
+directly would get a TS error.
 
-## Changed files
+### FIX 4 — packages/db/src/types.ts
+Definitive version including all 10 sessions' tables:
+alerts, investigations, actions, threat_intel, playbooks, audit_log, profiles,
+webhook_tokens, splunk_schedules, notification_channels, notification_log,
+alert_notes, agent_heartbeats. Added `AgentHeartbeatStatus` type export.
 
-### apps/agent/src/index.ts
-Calls startHeartbeat() on startup.
+### FIX 5 — apps/web/src/app/api/alerts/[id]/notes/route.ts
+`getUser()` in a route handler requires the cookies context which isn't
+automatically available from `@soc/auth` directly. Fixed to use
+`createRequestClient()` to get an auth-aware Supabase client, then validate
+the session before using the service client for the write.
+File path corrected: drop into `apps/web/src/app/api/alerts/[id]/notes/route.ts`
 
-### apps/web/src/app/dashboard/page.tsx + .module.css
-AgentHealthWidget rendered between header and LiveDashboard.
+### FIX 6 — apps/web/src/app/api/health/route.ts
+Added `force-dynamic` export. Wrapped in try/catch so the route returns a safe
+offline response if `agent_heartbeats` table doesn't exist (migration not run yet)
+instead of crashing with a 500. Fixed the `alerts_processed_1h` type cast.
 
-### apps/web/src/app/investigations/[id]/page.tsx + .module.css
-ExportButtons added to header meta row. Breadcrumb links back to alert detail.
-Updated to session-09 investigation.module.css styles.
+### FIX 7 — apps/web/src/components/InvestigationsList.tsx
+Renamed internal `fetch_` function to `loadInvestigations` to avoid shadowing the
+global `fetch` and causing confusing TypeScript errors. Used `window.fetch` explicitly
+for the API call.
 
-### README.md
-Final submission README with demo video script, architecture diagram,
-stack table, quick start, migration list, security features, session log.
+### FIX 8 — apps/web/src/components/AgentHealthWidget.tsx
+Extracted `Metric` sub-component to reduce repetition. Initialized state with
+`OFFLINE` constant instead of `null` to avoid null checks throughout. Used
+`window.fetch` explicitly. Added `[...history].reverse()` to avoid mutating state.
+
+### FIX 9 — packages/auth/src/session.ts
+Confirmed final version (from S06) is correct with `createRequestClient` exported.
+
+### FIX 10-12 — turbo.json, package.json, pnpm-workspace.yaml
+`lint` task now depends on `^build` so packages are built before linting apps.
+Root package.json and pnpm-workspace.yaml confirmed correct.
+
+### FIX 13 — .env.example
+Complete environment variable reference covering all 10 sessions:
+Supabase, HuggingFace, Splunk, webhook, threat intel, notifications,
+agent tuning, demo, and testing variables. All documented.
+
+---
+
+## File drop-in map
+
+| File in this zip | Drop into repo at |
+|---|---|
+| apps/agent/package.json | apps/agent/package.json |
+| apps/web/src/app/api/alerts/notes-route.ts | apps/web/src/app/api/alerts/[id]/notes/route.ts |
+| apps/web/src/app/api/health/route.ts | apps/web/src/app/api/health/route.ts |
+| apps/web/src/components/InvestigationsList.tsx | apps/web/src/components/InvestigationsList.tsx |
+| apps/web/src/components/AgentHealthWidget.tsx | apps/web/src/components/AgentHealthWidget.tsx |
+| packages/ai/src/index.ts | packages/ai/src/index.ts |
+| packages/auth/src/index.ts | packages/auth/src/index.ts |
+| packages/auth/src/session.ts | packages/auth/src/session.ts |
+| packages/db/src/types.ts | packages/db/src/types.ts |
+| turbo.json | turbo.json |
+| package.json | package.json |
+| pnpm-workspace.yaml | pnpm-workspace.yaml |
+| .env.example | .env.example |
+
+⚠️ The notes-route.ts file must be RENAMED to `route.ts` after dropping it into
+`apps/web/src/app/api/alerts/[id]/notes/`.

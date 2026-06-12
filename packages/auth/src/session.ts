@@ -4,7 +4,6 @@ import { createServerClient as supabaseServerClient } from '@supabase/ssr'
 import type { Database } from '@soc/db'
 import type { AuthUser, UserRole } from './types'
 
-// Always create a fresh server client per-request (Next.js 14 App Router)
 export async function createRequestClient() {
   const cookieStore = await cookies()
   return supabaseServerClient<Database>(
@@ -19,7 +18,7 @@ export async function createRequestClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server Component — cookie setting is a no-op, handled by middleware
+            // Server Component — cookie setting no-op, handled by middleware
           }
         },
       },
@@ -35,14 +34,13 @@ export async function getSession() {
 
 export async function getUser(): Promise<AuthUser | null> {
   const supabase = await createRequestClient()
-  // Use getUser() not getSession() — more secure, hits Supabase server
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) return null
   return {
-    id: user.id,
+    id:    user.id,
     email: user.email!,
-    role: (user.user_metadata?.role as UserRole) ?? 'viewer',
-    name: user.user_metadata?.name ?? null,
+    role:  (user.user_metadata?.role as UserRole) ?? 'viewer',
+    name:  user.user_metadata?.name ?? null,
   }
 }
 

@@ -12,7 +12,7 @@ interface Investigation {
   confidence_score: number | null; summary: string | null
   attack_chain: string[]; alerts: AlertInline
 }
-interface Page { data: Investigation[]; total: number; page: number; limit: number }
+interface PageResult { data: Investigation[]; total: number; page: number; limit: number }
 
 const SEV_COLORS: Record<string, string> = {
   critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#3b82f6', info: '#6b7280'
@@ -23,27 +23,36 @@ const STATUS_COLORS: Record<string, string> = {
 
 export function InvestigationsList() {
   const router = useRouter()
-  const [results, setResults] = useState<Page | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [q, setQ] = useState('')
-  const [status, setStatus] = useState('')
+  const [results, setResults]   = useState<PageResult | null>(null)
+  const [loading, setLoading]   = useState(true)
+  const [q, setQ]               = useState('')
+  const [status, setStatus]     = useState('')
   const [severity, setSeverity] = useState('')
-  const [page, setPage] = useState(1)
+  const [page, setPage]         = useState(1)
   const [inputVal, setInputVal] = useState('')
 
-  const fetch_ = useCallback(async (opts: { q: string; status: string; severity: string; page: number }) => {
+  const loadInvestigations = useCallback(async (
+    opts: { q: string; status: string; severity: string; page: number }
+  ) => {
     setLoading(true)
-    const params = new URLSearchParams()
-    if (opts.q)        params.set('q', opts.q)
-    if (opts.status)   params.set('status', opts.status)
-    if (opts.severity) params.set('severity', opts.severity)
-    params.set('page', String(opts.page))
-    const res = await fetch(`/api/investigations?${params}`)
-    if (res.ok) setResults(await res.json() as Page)
-    setLoading(false)
+    try {
+      const params = new URLSearchParams()
+      if (opts.q)        params.set('q', opts.q)
+      if (opts.status)   params.set('status', opts.status)
+      if (opts.severity) params.set('severity', opts.severity)
+      params.set('page', String(opts.page))
+      const res = await window.fetch(`/api/investigations?${params}`)
+      if (res.ok) setResults(await res.json() as PageResult)
+    } catch (err) {
+      console.error('[InvestigationsList] fetch error:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { fetch_({ q, status, severity, page }) }, [q, status, severity, page, fetch_])
+  useEffect(() => {
+    loadInvestigations({ q, status, severity, page })
+  }, [q, status, severity, page, loadInvestigations])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -60,15 +69,11 @@ export function InvestigationsList() {
 
   return (
     <div className={styles.wrap}>
-      {/* Search + filters */}
       <div className={styles.controls}>
         <form className={styles.searchRow} onSubmit={handleSearch}>
-          <input
-            className={styles.searchInput}
-            value={inputVal}
+          <input className={styles.searchInput} value={inputVal}
             onChange={e => setInputVal(e.target.value)}
-            placeholder="Search by alert title…"
-          />
+            placeholder="Search by alert title…" />
           <button type="submit" className={styles.searchBtn}>Search</button>
           {hasFilters && (
             <button type="button" className={styles.clearBtn} onClick={clearFilters}>Clear</button>
@@ -99,15 +104,12 @@ export function InvestigationsList() {
         </div>
       </div>
 
-      {/* Results summary */}
       {results && (
         <div className={styles.summary}>
-          {results.total} investigation{results.total !== 1 ? 's' : ''}
-          {hasFilters && ' (filtered)'}
+          {results.total} investigation{results.total !== 1 ? 's' : ''}{hasFilters ? ' (filtered)' : ''}
         </div>
       )}
 
-      {/* Results list */}
       {loading ? (
         <div className={styles.loading}>Loading…</div>
       ) : (
@@ -118,11 +120,8 @@ export function InvestigationsList() {
           {results?.data.map(inv => {
             const alert = inv.alerts
             return (
-              <div
-                key={inv.id}
-                className={styles.card}
-                onClick={() => router.push(`/investigations/${inv.id}`)}
-              >
+              <div key={inv.id} className={styles.card}
+                onClick={() => router.push(`/investigations/${inv.id}`)}>
                 <div className={styles.cardTop}>
                   <div className={styles.cardLeft}>
                     {alert && (
@@ -134,7 +133,7 @@ export function InvestigationsList() {
                   <div className={styles.cardRight}>
                     <span className={styles.statusBadge}
                       style={{ color: STATUS_COLORS[inv.status] ?? '#94a3b8' }}>
-                      ● {inv.status.replace('_', ' ')}
+                      ● {inv.status.replace(/_/g, ' ')}
                     </span>
                     {inv.confidence_score != null && (
                       <span className={styles.confidence}>
@@ -145,7 +144,7 @@ export function InvestigationsList() {
                 </div>
 
                 {inv.summary && (
-                  <p className={styles.summary_}>
+                  <p className={styles.summaryText}>
                     {inv.summary.slice(0, 160)}{inv.summary.length > 160 ? '…' : ''}
                   </p>
                 )}
@@ -172,7 +171,6 @@ export function InvestigationsList() {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <button className={styles.pageBtn} disabled={page === 1}

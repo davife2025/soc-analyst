@@ -1,9 +1,10 @@
-export type AlertSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info'
-export type AlertStatus = 'new' | 'investigating' | 'resolved' | 'false_positive'
-export type InvestigationStatus = 'running' | 'complete' | 'needs_review'
-export type ActionStatus = 'pending' | 'approved' | 'executed' | 'rejected'
-export type UserRole = 'admin' | 'analyst' | 'viewer'
+export type AlertSeverity          = 'critical' | 'high' | 'medium' | 'low' | 'info'
+export type AlertStatus            = 'new' | 'investigating' | 'resolved' | 'false_positive'
+export type InvestigationStatus    = 'running' | 'complete' | 'needs_review'
+export type ActionStatus           = 'pending' | 'approved' | 'executed' | 'rejected'
+export type UserRole               = 'admin' | 'analyst' | 'viewer'
 export type NotificationChannelType = 'slack' | 'pagerduty' | 'email'
+export type AgentHeartbeatStatus   = 'healthy' | 'degraded' | 'error'
 
 export interface Database {
   public: {
@@ -68,9 +69,14 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['alert_notes']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Pick<Database['public']['Tables']['alert_notes']['Row'], 'content'>>
       }
+      agent_heartbeats: {
+        Row: { id: string; agent_version: string; status: AgentHeartbeatStatus; alerts_queued: number; alerts_processed_1h: number; last_investigation_at: string | null; last_error: string | null; metadata: Record<string, unknown>; created_at: string }
+        Insert: Omit<Database['public']['Tables']['agent_heartbeats']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['agent_heartbeats']['Insert']>
+      }
     }
   }
 }
 
-export interface ReasoningStep { step: number; thought: string; tool_used: string | null; tool_result: unknown | null; timestamp: string }
-export interface PlaybookStep { order: number; action: string; parameters: Record<string, unknown>; requires_approval: boolean }
+export interface ReasoningStep  { step: number; thought: string; tool_used: string | null; tool_result: unknown | null; timestamp: string }
+export interface PlaybookStep   { order: number; action: string; parameters: Record<string, unknown>; requires_approval: boolean }
