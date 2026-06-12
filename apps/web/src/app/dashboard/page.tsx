@@ -3,6 +3,7 @@ import { requireAuth } from '@soc/auth'
 import styles from './dashboard.module.css'
 import { LiveDashboard } from '../../components/LiveDashboard'
 import { UserMenu } from '../../components/UserMenu'
+import { AgentHealthWidget } from '../../components/AgentHealthWidget'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,16 +24,21 @@ export default async function DashboardPage() {
           <span className={styles.badge}>● Live · Kimi K2</span>
         </div>
         <nav className={styles.nav}>
-          <a href="/dashboard"       className={styles.navLink}>Dashboard</a>
-          <a href="/playbooks"       className={styles.navLink}>Playbooks</a>
-          <a href="/audit"           className={styles.navLink}>Audit</a>
-          <a href="/settings"        className={styles.navLink}>Settings</a>
-          {user.role === 'admin' && (
-            <a href="/settings/tokens" className={styles.navLink}>Tokens</a>
-          )}
+          <a href="/dashboard"      className={styles.navLink}>Dashboard</a>
+          <a href="/investigations" className={styles.navLink}>Investigations</a>
+          <a href="/analytics"      className={styles.navLink}>Analytics</a>
+          <a href="/playbooks"      className={styles.navLink}>Playbooks</a>
+          <a href="/audit"          className={styles.navLink}>Audit</a>
+          <a href="/settings"       className={styles.navLink}>Settings</a>
         </nav>
         <UserMenu user={user} />
       </header>
+
+      {/* Agent health widget below nav */}
+      <div className={styles.healthRow}>
+        <AgentHealthWidget />
+      </div>
+
       <LiveDashboard initialAlerts={alerts ?? []} initialInvestigations={investigations ?? []} />
     </main>
   )

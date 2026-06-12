@@ -14,18 +14,22 @@ export default async function SettingsPage() {
 
       <div className={styles.grid}>
         <section className={styles.section}>
-          <h2>Developer Tools</h2>
-          <SeedPanel />
-        </section>
-
-        <section className={styles.section}>
-          <h2>Quick Links</h2>
+          <h2>Integrations</h2>
           <div className={styles.links}>
-            <a href="/audit" className={styles.link}>
-              <span>📋</span>
+            {user.role === 'admin' && (
+              <a href="/settings/notifications" className={styles.link}>
+                <span>🔔</span>
+                <div>
+                  <p className={styles.linkTitle}>Notification Channels</p>
+                  <p className={styles.linkSub}>Slack, PagerDuty, Email</p>
+                </div>
+              </a>
+            )}
+            <a href="/settings/schedules" className={styles.link}>
+              <span>⏰</span>
               <div>
-                <p className={styles.linkTitle}>Audit Log</p>
-                <p className={styles.linkSub}>Tamper-proof decision trail</p>
+                <p className={styles.linkTitle}>Splunk Schedules</p>
+                <p className={styles.linkSub}>Auto-pull saved searches</p>
               </div>
             </a>
             {user.role === 'admin' && (
@@ -33,10 +37,16 @@ export default async function SettingsPage() {
                 <span>🔑</span>
                 <div>
                   <p className={styles.linkTitle}>Webhook Tokens</p>
-                  <p className={styles.linkSub}>Manage Splunk integration tokens</p>
+                  <p className={styles.linkSub}>Manage Splunk webhook auth</p>
                 </div>
               </a>
             )}
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2>Operations</h2>
+          <div className={styles.links}>
             <a href="/playbooks" className={styles.link}>
               <span>⚡</span>
               <div>
@@ -44,7 +54,26 @@ export default async function SettingsPage() {
                 <p className={styles.linkSub}>Automated response rules</p>
               </div>
             </a>
+            <a href="/audit" className={styles.link}>
+              <span>📋</span>
+              <div>
+                <p className={styles.linkTitle}>Audit Log</p>
+                <p className={styles.linkSub}>Tamper-proof decision trail</p>
+              </div>
+            </a>
+            <a href="/analytics" className={styles.link}>
+              <span>📊</span>
+              <div>
+                <p className={styles.linkTitle}>Analytics</p>
+                <p className={styles.linkSub}>Metrics, trends, MTTR</p>
+              </div>
+            </a>
           </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2>Developer Tools</h2>
+          <SeedPanel />
         </section>
       </div>
     </main>

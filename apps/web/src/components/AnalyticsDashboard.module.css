@@ -1,0 +1,54 @@
+.wrap { display: flex; flex-direction: column; gap: 20px; }
+.loading { color: #64748b; padding: 48px; text-align: center; font-size: 14px; }
+
+.periodRow { display: flex; gap: 6px; }
+.period, .periodActive { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+.period { background: #1e293b; color: #64748b; }
+.period:hover { color: #e2e8f0; }
+.periodActive { background: #1d4ed8; color: #fff; }
+
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+@media (max-width: 768px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+.kpi { background: #1e293b; border-radius: 10px; padding: 16px; text-align: center; border: 1px solid #334155; }
+.kpiValue { display: block; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.kpiLabel { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+.panel { background: #1e293b; border-radius: 10px; padding: 20px; border: 1px solid #334155; }
+.panelTitle { font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+.empty { color: #475569; font-size: 13px; }
+
+/* Severity bars */
+.sevBars { display: flex; flex-direction: column; gap: 10px; }
+.sevRow { display: flex; align-items: center; gap: 10px; }
+.sevLabel { font-size: 12px; color: #94a3b8; width: 60px; text-transform: capitalize; }
+.barTrack { flex: 1; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; }
+.barFill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+.sevCount { font-size: 12px; color: #64748b; width: 28px; text-align: right; }
+
+/* Daily chart */
+.chart { display: flex; align-items: flex-end; gap: 4px; height: 140px; padding-bottom: 20px; position: relative; }
+.chartCol { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
+.barStack { flex: 1; width: 100%; display: flex; flex-direction: column-reverse; border-radius: 3px; overflow: hidden; gap: 1px; }
+.stackSegment { width: 100%; transition: height .4s ease; min-height: 2px; }
+.chartLabel { font-size: 9px; color: #475569; white-space: nowrap; }
+
+/* Top hosts */
+.hostList { display: flex; flex-direction: column; gap: 10px; }
+.hostRow { display: flex; align-items: center; gap: 10px; }
+.hostName { font-size: 12px; color: #94a3b8; width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hostCount { font-size: 12px; color: #64748b; width: 24px; text-align: right; }
+
+/* Tag cloud */
+.tagCloud { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tag { background: #0f172a; color: #94a3b8; padding: 3px 10px; border-radius: 12px; cursor: default; display: flex; align-items: center; gap: 5px; }
+.tagCount { color: #475569; font-size: 10px; }
+
+/* Funnel */
+.funnel { display: flex; flex-direction: column; gap: 10px; }
+.funnelStep { display: flex; align-items: center; gap: 16px; }
+.funnelBar { height: 24px; border-radius: 4px; transition: width .4s ease; }
+.funnelMeta { display: flex; gap: 10px; align-items: center; }
+.funnelLabel { font-size: 13px; color: #94a3b8; min-width: 120px; }
+.funnelValue { font-size: 13px; font-weight: 600; color: #e2e8f0; }

@@ -1,70 +1,66 @@
-# Session 06 – Bug Fixes & Polish
+# Session 10 – Agent Health, Export, Final Polish
 
 ## Drop-in instructions
-Unzip into `soc-analyst/` root. No new dependencies. No new migrations.
+Unzip into `soc-analyst/` root. No new npm dependencies. Run migration 007.
+
+## New migrations
+Run in Supabase SQL editor:
+1. `packages/db/migrations/007_agent_health.sql`
+
+## New env vars (optional)
+```
+HEARTBEAT_INTERVAL_MS=30000    # how often agent emits heartbeat (default 30s)
+AGENT_VERSION=1.0.0            # shown in health widget
+```
 
 ---
 
-## Fixes applied
+## New files
 
-### FIX 1 — packages/auth/src/session.ts + clients.ts + index.ts
-- `cookies()` is now properly awaited (Next.js 14 requirement)
-- Using `getUser()` instead of `getSession()` — more secure, validates with Supabase server
-- Browser client is now a singleton (prevents re-initialization on every render)
+### apps/agent/src/heartbeat.ts
+Emits heartbeat to `agent_heartbeats` table every 30s:
+- alerts_queued (new alerts in DB), alerts_processed_1h, last_investigation_at
+- status: healthy / degraded (queue > 50) / error
+- process PID + uptime in metadata
+- Trims to 1000 most recent entries
 
-### FIX 2 — packages/db/src/client.ts + index.ts
-- Added `getEnv()` helper with clear error messages for missing vars
-- `createServiceClient()` now validates env vars at call time rather than silently failing
+### apps/web/src/app/api/health/route.ts
+GET: returns agent online status, last seen, uptime %, queue depth, processed/hr,
+totals (alerts + investigations), and last 20 heartbeats for sparkline.
 
-### FIX 3 — apps/web/src/hooks/useRealtimeAlerts.ts
-- Uses `createBrowserClient` (anon key) not service role client
-- Accepts `initialAlerts` / `initialInvestigations` props to avoid flash of empty state
-- Added channel status logging + graceful CHANNEL_ERROR handling
-- Cleanup ref prevents stale subscriptions on re-render
+### apps/web/src/components/AgentHealthWidget.tsx + .module.css
+Dashboard widget showing:
+- Online/offline/degraded status with pulsing dot
+- Queue depth, processed/hr, uptime %, process uptime
+- 20-point heartbeat sparkline (green=healthy, amber=degraded, red=error)
+- Polls /api/health every 30s, shimmer skeleton while loading
 
-### FIX 4 — apps/web/src/components/LiveDashboard.tsx
-- Passes `initialAlerts` and `initialInvestigations` down to hooks
-- No more empty flash on first load
+### apps/web/src/app/api/export/alerts/route.ts
+GET with query params (since, severity, status): streams CSV of up to 5000 alerts.
+Proper escaping for fields with commas/quotes/newlines.
 
-### FIX 5 — apps/web/src/app/investigations/[id]/page.tsx + CSS
-- `params` is now `Promise<{ id: string }>` and awaited (Next.js 14)
-- Type casting cleaned up with proper `InvWithAlert` interface
-- Added spinning "Agent is investigating" state when status is 'running'
-- Added "View audit log" link in header meta
-- Responsive grid (single column on mobile)
+### apps/web/src/app/api/export/investigation/route.ts
+GET ?id=&format=(txt|json):
+- txt: full formatted incident report with alert details, summary, attack chain,
+  actions, reasoning chain, analyst notes — ready for email/ticket attachment
+- json: raw structured data for integration
 
-### FIX 6 — apps/web/src/components/ActionPanel.tsx
-- Error display when PATCH fails
-- Reverts optimistic update on failure
-- Proper null check on `action.parameters`
+### apps/web/src/components/ExportButtons.tsx + .module.css
+Download buttons that trigger blob download with proper filename from
+Content-Disposition header. Works for both alerts CSV and investigation reports.
 
-### FIX 7 — apps/agent/src/index.ts
-- Validates required env vars on startup and exits with clear message
-- Exposes HTTP health check on `PORT` (required for Render worker)
-- Concurrent alert processing (up to 3 at once) with `Promise.allSettled`
-- Alert claiming uses conditional update (`.eq('status','new')`) to prevent double-processing
-- Releases claim if investigation creation fails
-- Error logged to audit_log on failure
+## Changed files
 
-### FIX 8 — packages/ai/src/kimi-client.ts
-- Added `X-Wait-For-Model: true` header (handles HF cold starts gracefully)
-- Clear error messages for 503 (model loading) and 401 (bad API key)
+### apps/agent/src/index.ts
+Calls startHeartbeat() on startup.
 
-### FIX 9 — packages/ai/src/investigate.ts
-- Retry loop (up to 2 retries) on HF 503/model-loading errors with 20s backoff
-- Guards against empty response from model
-- Better `parseOutput`: extracts confidence score, attack chain bullets, and action keywords
-- Tool call argument parsing wrapped in try/catch
+### apps/web/src/app/dashboard/page.tsx + .module.css
+AgentHealthWidget rendered between header and LiveDashboard.
 
-### FIX 10 — All dynamic API routes
-Next.js 14 requires `params` to be `Promise<{ id: string }>` and awaited:
-- apps/web/src/app/api/actions/[id]/route.ts
-- apps/web/src/app/api/investigations/[id]/route.ts
-- apps/web/src/app/api/playbooks/[id]/route.ts
-- apps/web/src/app/api/tokens/[id]/route.ts
-Also added input validation on status field in actions route.
+### apps/web/src/app/investigations/[id]/page.tsx + .module.css
+ExportButtons added to header meta row. Breadcrumb links back to alert detail.
+Updated to session-09 investigation.module.css styles.
 
-### FIX 11 — Deployment configs
-- apps/agent/render.yaml: added PORT=10000, POLL_INTERVAL_MS, correct build commands
-- apps/ingest/render.yaml: corrected build path
-- apps/web/vercel.json: added env var mappings
+### README.md
+Final submission README with demo video script, architecture diagram,
+stack table, quick start, migration list, security features, session log.

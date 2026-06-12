@@ -1,9 +1,10 @@
-.panel { background: #1e293b; border-radius: 10px; padding: 20px; }
-.title { font-size: 14px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing:.06em; margin-bottom: 16px; display:flex; align-items:center; gap:8px; }
+.panel { background: #1e293b; border-radius: 10px; padding: 16px; border: 1px solid #1e3a5f; }
+.title { font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing:.06em; margin-bottom: 14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .badge { background: #f59e0b; color: #000; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight:700; }
-.empty { color: #475569; font-size: 14px; }
+.empty { color: #475569; font-size: 13px; }
+.error { font-size: 12px; color: #f87171; background: #450a0a; padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; }
 
-.section { margin-bottom: 16px; }
+.section { margin-bottom: 14px; }
 .sectionLabel { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing:.08em; margin-bottom: 8px; }
 
 .card { background: #0f172a; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #1e3a5f; }
@@ -13,12 +14,12 @@
 
 .cardHeader { display: flex; align-items: flex-start; gap: 10px; }
 .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-.cardInfo { flex: 1; }
-.actionType { font-size: 13px; font-weight: 600; color: #e2e8f0; text-transform: capitalize; }
+.cardInfo { flex: 1; min-width: 0; }
+.actionType { font-size: 13px; font-weight: 600; color: #e2e8f0; text-transform: capitalize; display: block; }
 .description { font-size: 12px; color: #94a3b8; margin-top: 2px; line-height: 1.5; }
 
 .statusDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; margin-top:4px; }
-.pending  { background: #f59e0b; }
+.pendingDot { background: #f59e0b; }
 .approved { background: #22c55e; }
 .rejected { background: #ef4444; }
 
@@ -26,8 +27,8 @@
 .result { font-size: 12px; color: #64748b; margin-top: 6px; font-style: italic; }
 
 .buttons { display: flex; gap: 8px; margin-top: 10px; }
-.approve { flex: 1; background: #166534; color: #86efac; border: none; border-radius: 6px; padding: 7px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.approve { flex: 1; background: #166534; color: #86efac; border: none; border-radius: 6px; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
 .approve:hover:not(:disabled) { background: #15803d; }
-.reject  { flex: 1; background: #1e293b; color: #f87171; border: 1px solid #7f1d1d; border-radius: 6px; padding: 7px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.reject { flex: 1; background: #1e293b; color: #f87171; border: 1px solid #7f1d1d; border-radius: 6px; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .reject:hover:not(:disabled) { background: #450a0a; }
 button:disabled { opacity: .5; cursor: not-allowed; }

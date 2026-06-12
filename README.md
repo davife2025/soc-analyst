@@ -1,240 +1,155 @@
 # 🛡️ SOC Analyst — Autonomous Security Operations Agent
 
-> **Splunk Agentic Ops Hackathon** · Security Track
+> **Splunk Agentic Ops Hackathon** · Security Track · 10-session build
 
-An AI-powered autonomous SOC analyst that investigates security alerts end-to-end — from raw Splunk event to reasoned finding, recommended action, and automated response — with zero manual triage required for routine threats.
+An AI-powered SOC analyst that investigates Splunk alerts end-to-end — from raw event to reasoned finding, MITRE ATT&CK mapping, automated playbook execution, and analyst-approved response — with full audit trail and real-time collaboration.
 
 ---
 
-## 🎯 What It Does
+## 🎬 Demo Video Script
 
-When a Splunk alert fires, the agent:
+**Setup**: Deploy → run migrations → seed demo data → open /dashboard
 
-1. **Receives** the alert via webhook or HEC pipeline
-2. **Investigates** autonomously using Kimi K2 (via Hugging Face) with multi-step tool use
-3. **Enriches** with threat intelligence (VirusTotal + AbuseIPDB + NVD CVE)
-4. **Correlates** via live Splunk SPL searches
-5. **Reasons** through the attack chain (mapped to MITRE ATT&CK)
-6. **Recommends** specific response actions with confidence scoring
-7. **Triggers playbooks** — auto-executing safe actions, flagging destructive ones for analyst approval
-8. **Logs everything** to a tamper-proof audit trail
+**[0:00–0:20] Hook**
+> "Every second your Splunk fires alerts. Your team manually triages each one — 20–40 minutes each. SOC Analyst does it autonomously in under 30 seconds."
+
+**[0:20–0:50] Live dashboard**
+> Go to /settings → Seed Demo Data → watch 8 realistic alerts appear live
+
+**[0:50–1:30] Ransomware investigation**
+> Click the "Mass File Encryption" alert → alert detail page → click investigation link
+> Show reasoning chain expanding step by step — threat intel lookup, Splunk correlation, lateral movement correlation
+> "94% confidence. It mapped 7 MITRE ATT&CK stages autonomously."
+
+**[1:30–2:00] Attack timeline + actions**
+> Show attack chain: Initial Access → Execution → Lateral Movement → Impact
+> Approve `isolate_host` action live → "Human in the loop for destructive actions"
+
+**[2:00–2:20] Agent health widget**
+> Point to health widget: online, queue depth, processed/hr, sparkline heartbeat
+
+**[2:20–2:40] Export**
+> Click ⬇ Report (.txt) → show incident report with full investigation detail
+
+**[2:40–3:00] Playbooks + Audit**
+> /playbooks → 3 default playbooks, auto vs manual badges
+> /audit → tamper-proof log of every agent decision
+
+**[3:00–3:20] Architecture close**
+> "Kimi K2 via Hugging Face Inference API. Supabase Realtime. Next.js on Vercel. Agent worker on Render. pnpm monorepo."
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Splunk                               │
-│  Alerts ──► Webhook ──► /api/webhooks/splunk                │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ POST (Bearer token auth)
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              apps/ingest  (Render)                          │
-│  Normalizes events ──► Supabase alerts table                │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ Supabase Realtime
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              apps/agent  (Render Worker)                    │
-│                                                             │
-│  Poll new alerts ──► Kimi K2 (HF Inference API)            │
-│       │                    │                                │
-│       │              Tool calls:                            │
-│       │              • lookup_threat_intel                  │
-│       │                (VirusTotal + AbuseIPDB + NVD)       │
-│       │              • search_splunk (SPL queries)          │
-│       │              • get_host_context                     │
-│       │                                                     │
-│  Investigation complete ──► matchPlaybooks                  │
-│       │                    ──► executePlaybook              │
-│       ▼                                                     │
-│  Write: investigations + actions + audit_log                │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ Supabase Realtime (websocket)
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              apps/web  (Vercel)                             │
-│                                                             │
-│  /dashboard      Live alerts + investigations               │
-│  /investigations/[id]                                       │
-│    • Reasoning chain (expandable step-by-step)             │
-│    • Attack timeline (MITRE ATT&CK colored)                │
-│    • Action approval panel (approve/reject)                 │
-│  /playbooks      Automated response rules                   │
-│  /audit          Tamper-proof decision trail                │
-│  /settings       Demo seeder + quick links                  │
-│  /settings/tokens  Webhook token management                 │
-└─────────────────────────────────────────────────────────────┘
-                      │
-                      ▼
-              Supabase (Postgres + Realtime + Auth)
-              ┌──────────────────────────────┐
-              │ alerts          investigations│
-              │ actions         threat_intel  │
-              │ playbooks       audit_log     │
-              │ profiles        webhook_tokens│
-              └──────────────────────────────┘
+Splunk ──webhook──► /api/webhooks/splunk ──► Supabase alerts table
+                                                     │
+                              Supabase Realtime ◄────┘
+                                     │
+                          apps/agent (Render worker)
+                          ┌──────────────────────────┐
+                          │  Poll new alerts          │
+                          │  Kimi K2 tool-use loop    │
+                          │  ├─ lookup_threat_intel   │
+                          │  │  (VirusTotal+AbuseIPDB)│
+                          │  ├─ search_splunk (SPL)   │
+                          │  └─ get_host_context      │
+                          │  Match + run playbooks    │
+                          │  Notify channels          │
+                          │  Emit heartbeat           │
+                          └──────────────────────────┘
+                                     │
+                          apps/web (Vercel)
+                          /dashboard       Live alerts + agent health
+                          /alerts/[id]     Raw event, status, notes
+                          /investigations  Search + filter
+                          /investigations/[id]  Reasoning + actions + export
+                          /analytics       KPIs, MTTR, trends
+                          /playbooks       Response automation
+                          /audit           Tamper-proof trail
+                          /settings/*      Notifications, schedules, tokens
 ```
 
 ---
 
-## 🚀 Stack
+## 📦 Stack
 
-| Layer | Technology |
+| | |
 |---|---|
-| **AI Model** | Kimi K2 via Hugging Face Inference API |
-| **Agent runtime** | Node.js + OpenAI-compatible SDK (tool use loop) |
+| **AI** | Kimi K2 via Hugging Face Inference API (OpenAI-compatible) |
+| **Agent** | Node.js + multi-step tool-use loop with retry |
 | **Frontend** | Next.js 14 App Router + CSS Modules |
 | **Database** | Supabase (Postgres + Realtime + Auth) |
 | **Monorepo** | pnpm workspaces + Turborepo |
-| **Deployment** | Vercel (web) + Render (agent + ingest) |
-| **Testing** | Playwright E2E |
-| **Security** | Rate limiting, CSP headers, RBAC, hashed webhook tokens |
-
----
-
-## 📦 Monorepo Structure
-
-```
-soc-analyst/
-├── apps/
-│   ├── web/        Next.js dashboard + API routes → Vercel
-│   ├── agent/      Autonomous investigation loop → Render worker
-│   └── ingest/     Splunk HEC normalizer → Render web
-└── packages/
-    ├── db/         Supabase client, types, all migrations
-    ├── ai/         Kimi K2 client, investigation engine,
-    │               threat intel, playbook engine
-    ├── splunk/     Splunk search client + event normalizer
-    ├── auth/       Supabase SSR auth + RBAC helpers
-    ├── ui/         Shared React components
-    └── config/     Shared TS/ESLint config
-```
+| **Deploy** | Vercel (web) + Render (agent + ingest) |
+| **Notifications** | Slack blocks + PagerDuty Events v2 + Resend email |
+| **Threat intel** | VirusTotal + AbuseIPDB + NVD CVE |
+| **Testing** | Playwright E2E + GitHub Actions CI |
 
 ---
 
 ## ⚡ Quick Start
 
 ```bash
-# 1. Clone and install
-git clone <repo>
-cd soc-analyst
 pnpm install
+cp .env.example .env   # fill in Supabase + HuggingFace + Splunk keys
 
-# 2. Configure environment
-cp .env.example .env
-# Fill in: SUPABASE_*, HUGGINGFACE_API_KEY, SPLUNK_*, WEBHOOK_SECRET
+# Run all 7 migrations in Supabase SQL editor (in order)
+# packages/db/migrations/001_initial.sql … 007_agent_health.sql
 
-# 3. Run Supabase migrations (paste in order into Supabase SQL editor)
-#    packages/db/migrations/001_initial.sql
-#    packages/db/migrations/002_indexes_and_rls.sql
-#    packages/db/migrations/003_auth_and_profiles.sql
-#    packages/db/migrations/004_seed_tracking.sql
+pnpm dev               # starts web (3000) + agent + ingest concurrently
 
-# 4. Start all services
-pnpm dev
-
-# 5. Seed demo data (in browser)
-#    Visit /settings → click "Seed Demo Data"
+# Seed demo data: visit /settings → "Seed Demo Data"
 ```
 
 ---
 
-## 🎬 Demo Script (Hackathon Presentation)
+## 🗄️ Migrations (run in order)
 
-**Setup** (before presenting): Deploy, run migrations, set `ALLOW_SEED=true`
-
-**Step 1 — Live Dashboard** (30s)
-> "This is our autonomous SOC analyst running in production. Every alert from Splunk lands here in real time via webhook."
-
-**Step 2 — Seed demo data** (15s)
-> Go to `/settings` → Seed Demo Data → watch 8 alerts appear live on the dashboard
-
-**Step 3 — Ransomware investigation** (60s)
-> Click the "Ransomware Indicator" alert → show the investigation detail page
-> "The agent investigated this autonomously — no human touched it. Here's its reasoning chain…"
-> Expand reasoning steps showing threat intel lookup, Splunk correlation, confidence scoring
-
-**Step 4 — Attack timeline** (20s)
-> Scroll to attack chain: Initial Access → Execution → Persistence → Lateral Movement → Impact
-> "It mapped the full MITRE ATT&CK chain — 7 stages from phishing to mass encryption"
-
-**Step 5 — Action approval** (30s)
-> Show pending actions: isolate host, block C2 IP, collect forensics
-> Approve one action live — "An analyst approves the isolation. This is the human-in-the-loop."
-
-**Step 6 — Playbooks** (20s)
-> Go to `/playbooks` — show the 3 default playbooks
-> "The 'Critical Alert' playbook already auto-notified the team and created a P0 ticket"
-
-**Step 7 — Audit trail** (15s)
-> Go to `/audit` — show the tamper-proof log of every agent decision
-> "Every single decision is logged immutably for compliance and post-incident review"
-
-**Step 8 — Architecture** (30s)
-> Show architecture diagram, explain Kimi K2 tool-use loop
-> "The agent runs on Render, the dashboard on Vercel, all state in Supabase with real-time sync"
-
----
-
-## 🔒 Security Features
-
-- **Webhook auth**: SHA-256 hashed tokens stored in DB, raw tokens shown once
-- **RBAC**: admin / analyst / viewer roles via Supabase Auth
-- **Rate limiting**: per-IP sliding window on all API routes (100 req/min webhooks, 10 req/min auth)
-- **CSP headers**: strict Content Security Policy on all responses
-- **Input sanitization**: webhook payloads sanitized before DB insertion
-- **Audit log**: append-only, no delete endpoint, service-role only write
-
----
-
-## 📋 Splunk Integration
-
-### Webhook (recommended)
-1. In Splunk: **Settings → Alerts → Add Action → Webhook**
-2. URL: `https://your-app.vercel.app/api/webhooks/splunk`
-3. Header: `Authorization: Bearer <token>` (generate at `/settings/tokens`)
-
-### HEC (bulk ingest)
-Send events to `POST https://your-ingest.onrender.com/services/collector/event`
-
----
-
-## 🗄️ Database Schema
-
-| Table | Purpose |
+| File | What it creates |
 |---|---|
-| `alerts` | Normalized Splunk events with severity/status |
-| `investigations` | Agent reasoning chains per alert |
-| `actions` | Recommended + executed responses |
-| `threat_intel` | Cached VirusTotal/AbuseIPDB lookups |
-| `playbooks` | Automated response rule definitions |
-| `audit_log` | Immutable tamper-proof decision trail |
-| `profiles` | User roles (admin/analyst/viewer) |
-| `webhook_tokens` | Hashed auth tokens for Splunk integration |
+| 001_initial.sql | alerts, investigations, actions, threat_intel, playbooks, audit_log |
+| 002_indexes_and_rls.sql | Performance indexes + RLS policies |
+| 003_auth_and_profiles.sql | profiles, webhook_tokens, auth triggers |
+| 004_seed_tracking.sql | seed_runs (optional) |
+| 005_analytics_and_scheduler.sql | splunk_schedules, notification_channels, notification_log |
+| 006_alert_notes.sql | alert_notes with realtime |
+| 007_agent_health.sql | agent_heartbeats with realtime |
+
+---
+
+## 🔒 Security
+
+- Webhook tokens: SHA-256 hashed, raw shown once, append-only audit on revoke
+- RBAC: admin / analyst / viewer via Supabase Auth (magic link + password)
+- Rate limiting: per-IP sliding window (100/min webhooks, 10/min auth)
+- CSP + HSTS + X-Frame-Options on every response
+- Input sanitization on all webhook payloads
+- Service role client never exposed to browser
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# E2E tests (requires TEST_USER_EMAIL + TEST_USER_PASSWORD env vars)
-pnpm --filter @soc/web test:e2e
-
-# Interactive test UI
-pnpm --filter @soc/web test:e2e:ui
+pnpm --filter @soc/web test:e2e        # Playwright (requires TEST_USER_*)
+pnpm --filter @soc/web test:e2e:ui     # Interactive Playwright UI
 ```
 
 ---
 
-## 📄 Session Log
+## 📋 Session Build Log
 
-| Session | What was built |
+| Session | Built |
 |---|---|
-| 01 | Full monorepo scaffold — all apps + packages |
-| 02 | Real-time dashboard, investigation detail, threat intel, action approval |
-| 03 | Supabase Auth + RBAC, Splunk webhook, playbook engine |
-| 04 | Audit log viewer, webhook token manager, demo data seeder |
-| 05 | Rate limiting, security hardening, Playwright E2E, CI pipeline, this README |
+| 01 | Full monorepo scaffold |
+| 02 | Realtime dashboard, investigation detail, threat intel, action approval |
+| 03 | Auth + RBAC, Splunk webhook, playbook engine |
+| 04 | Audit log, webhook token manager, demo seeder |
+| 05 | Rate limiting, security hardening, Playwright E2E, CI |
+| 06 | 11 production bug fixes (Next.js 14, auth, agent concurrency) |
+| 07 | Splunk scheduler, Slack/PagerDuty/Email notifications, analytics, mobile UI |
+| 08 | Notification channels UI, schedule manager, investigation search/filter |
+| 09 | Alert detail page, raw event viewer, analyst notes (realtime) |
+| 10 | Agent health monitor, CSV/report export, final polish |

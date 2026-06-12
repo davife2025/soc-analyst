@@ -1,0 +1,42 @@
+.wrap { display: flex; flex-direction: column; gap: 16px; }
+.addBtn { background: #1d4ed8; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; align-self: flex-start; }
+.addBtn:hover { background: #2563eb; }
+
+.form { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 14px; }
+.formTitle { font-size: 15px; font-weight: 600; }
+.typeTabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.typeTab, .typeActive { padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+.typeTab { background: #0f172a; color: #64748b; }
+.typeTab:hover { color: #e2e8f0; }
+.typeActive { background: #1d4ed8; color: #fff; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; color: #94a3b8; font-weight: 500; }
+.field input { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 13px; outline: none; }
+.field input:focus { border-color: #3b82f6; }
+.field input::placeholder { color: #475569; }
+.error { font-size: 12px; color: #f87171; background: #450a0a; padding: 8px 10px; border-radius: 6px; }
+.formBtns { display: flex; gap: 8px; }
+.saveBtn { background: #15803d; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.saveBtn:hover:not(:disabled) { background: #166534; }
+.saveBtn:disabled { opacity: .5; cursor: not-allowed; }
+.cancelBtn { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+.empty { background: #1e293b; border-radius: 10px; padding: 32px; text-align: center; color: #475569; font-size: 14px; border: 1px solid #334155; }
+.card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.card[data-active="false"] { opacity: .55; }
+.cardLeft { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.typeIcon { font-size: 22px; flex-shrink: 0; }
+.cardName { font-size: 14px; font-weight: 600; }
+.cardMeta { display: flex; gap: 10px; font-size: 12px; color: #64748b; margin-top: 2px; flex-wrap: wrap; }
+.typeBadge { background: #0f172a; color: #94a3b8; padding: 1px 7px; border-radius: 8px; }
+.cardActions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.testOk  { font-size: 12px; color: #86efac; font-weight: 600; }
+.testFail { font-size: 12px; color: #f87171; font-weight: 600; }
+.testBtn   { background: #1e3a5f; color: #93c5fd; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.testBtn:hover:not(:disabled) { background: #1d4ed8; color: #fff; }
+.testBtn:disabled { opacity: .4; cursor: not-allowed; }
+.toggleBtn { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.toggleBtn:hover:not(:disabled) { border-color: #475569; color: #e2e8f0; }
+.deleteBtn { background: none; color: #475569; border: none; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 4px; }
+.deleteBtn:hover { color: #f87171; background: #450a0a; }

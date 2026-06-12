@@ -1,0 +1,50 @@
+.wrap { display: flex; flex-direction: column; gap: 16px; }
+.addBtn { background: #1d4ed8; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; align-self: flex-start; }
+.addBtn:hover { background: #2563eb; }
+
+.form { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 14px; }
+.formTitle { font-size: 15px; font-weight: 600; }
+.twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .twoCol { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; color: #94a3b8; font-weight: 500; }
+.field input, .textarea { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 13px; outline: none; resize: vertical; }
+.field input:focus, .textarea:focus { border-color: #3b82f6; }
+.field input::placeholder, .textarea::placeholder { color: #475569; }
+.presets { display: flex; flex-wrap: wrap; gap: 5px; }
+.preset, .presetActive { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+.preset { background: #0f172a; color: #64748b; }
+.preset:hover { color: #e2e8f0; }
+.presetActive { background: #1d4ed8; color: #fff; }
+.cronInput { margin-top: 6px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 7px 10px; color: #e2e8f0; font-size: 12px; font-family: monospace; outline: none; width: 100%; }
+.error { font-size: 12px; color: #f87171; background: #450a0a; padding: 8px 10px; border-radius: 6px; }
+.formBtns { display: flex; gap: 8px; }
+.saveBtn { background: #15803d; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.saveBtn:hover:not(:disabled) { background: #166534; }
+.saveBtn:disabled { opacity: .5; cursor: not-allowed; }
+.cancelBtn { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+.list { display: flex; flex-direction: column; gap: 10px; }
+.empty { background: #1e293b; border-radius: 10px; padding: 32px; text-align: center; color: #475569; font-size: 14px; border: 1px solid #334155; }
+.card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.card[data-active="false"] { opacity: .55; }
+.cardHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.cardLeft { display: flex; align-items: center; gap: 10px; flex: 1; }
+.indicator { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #475569; }
+.indicator[data-active="true"] { background: #22c55e; }
+.cardName { font-size: 14px; font-weight: 600; display: block; }
+.cardDesc { font-size: 12px; color: #64748b; display: block; margin-top: 2px; }
+.cardRight { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.cronBadge { font-size: 11px; font-family: monospace; background: #0f172a; color: #86efac; padding: 2px 8px; border-radius: 6px; }
+.timerangeBadge { font-size: 11px; background: #0f172a; color: #94a3b8; padding: 2px 8px; border-radius: 6px; }
+.cardQuery code { font-size: 12px; color: #64748b; background: #0f172a; padding: 8px 10px; border-radius: 6px; display: block; font-family: monospace; line-height: 1.5; }
+.cardFooter { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.lastRun { display: flex; align-items: center; gap: 10px; font-size: 12px; flex-wrap: wrap; }
+.lastRunTime { color: #475569; }
+.alertsCreated { color: #22c55e; }
+.lastError { color: #f87171; }
+.cardActions { display: flex; gap: 8px; }
+.toggleBtn { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.toggleBtn:hover:not(:disabled) { border-color: #475569; color: #e2e8f0; }
+.deleteBtn { background: none; color: #475569; border: none; font-size: 14px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+.deleteBtn:hover { color: #f87171; background: #450a0a; }

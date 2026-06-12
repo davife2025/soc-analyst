@@ -4,7 +4,7 @@
 .back:hover { text-decoration: underline; }
 .header h1 { font-size: 22px; font-weight: 700; }
 .grid { display: flex; flex-direction: column; gap: 32px; }
-.section h2 { font-size: 14px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+.section h2 { font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
 .links { display: flex; flex-direction: column; gap: 8px; }
 .link { display: flex; align-items: center; gap: 14px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px 16px; transition: border-color .15s; }
 .link:hover { border-color: #3b82f6; }

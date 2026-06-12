@@ -1,0 +1,4 @@
+.wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 7px; padding: 6px 13px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn:hover:not(:disabled) { color: #e2e8f0; border-color: #475569; background: #0f172a; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
